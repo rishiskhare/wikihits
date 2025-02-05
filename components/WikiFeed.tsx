@@ -40,9 +40,11 @@ interface WikiApiResponse {
 }
 
 interface PopularApiResponse {
-  items: [{
-    articles: PopularArticle[]
-  }]
+  items: [
+    {
+      articles: PopularArticle[]
+    },
+  ]
 }
 
 export default function WikiFeed() {
@@ -94,17 +96,22 @@ export default function WikiFeed() {
         }
       })
 
-      setArticles((prevArticles) => [...prevArticles, ...newArticles])
+      // Filter out any duplicate articles
+      const uniqueNewArticles = newArticles.filter(
+        (newArticle) => !articles.some((existingArticle) => existingArticle.pageid === newArticle.pageid),
+      )
+
+      setArticles((prevArticles) => [...prevArticles, ...uniqueNewArticles])
     } catch (error) {
       console.error("Error fetching articles:", error)
     } finally {
       setIsLoading(false)
     }
-  }, [articles.length, isLoading, hasMore])
+  }, [articles, isLoading, hasMore])
 
   useEffect(() => {
     fetchTrendingArticles()
-  }, [])
+  }, [fetchTrendingArticles]) // Added fetchTrendingArticles to the dependency array
 
   useEffect(() => {
     if (inView) {
@@ -116,7 +123,7 @@ export default function WikiFeed() {
     <div className="h-[calc(100vh-5rem)] overflow-y-auto snap-y snap-mandatory">
       {articles.map((article, index) => (
         <div
-          key={article.pageid}
+          key={`${article.pageid}-${index}`}
           id={`article-${index}`}
           className="h-full flex items-center justify-center snap-start"
         >
