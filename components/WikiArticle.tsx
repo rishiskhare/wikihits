@@ -26,7 +26,6 @@ export default function WikiArticle({ article }: ArticleProps) {
   const [isTruncated, setIsTruncated] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [lineHeight, setLineHeight] = useState(0)
-  const [truncatedText, setTruncatedText] = useState("")
   const [isTouchDevice, setIsTouchDevice] = useState(false)
 
   useEffect(() => {
@@ -46,35 +45,11 @@ export default function WikiArticle({ article }: ArticleProps) {
       const isTrunc = extractElement.scrollHeight > initialMaxHeight
       setIsTruncated(isTrunc)
 
-      if (isTrunc && !isExpanded && !isTouchDevice) {
-        // Calculate the visible text and add ellipsis
-        const words = article.extract.split(" ")
-        let visibleText = ""
-        let lineCount = 0
-        let i = 0
-
-        while (lineCount < 8 && i < words.length) {
-          const testText = visibleText + words[i] + " "
-          extractElement.textContent = testText
-          if (extractElement.scrollHeight > lineCount * computedLineHeight) {
-            lineCount++
-            if (lineCount === 8) {
-              visibleText = visibleText.trim() + "..."
-              break
-            }
-          }
-          visibleText += words[i] + " "
-          i++
-        }
-
-        setTruncatedText(visibleText)
-      }
-
       if (!isTouchDevice) {
         extractElement.style.maxHeight = isExpanded ? `${expandedMaxHeight}px` : `${initialMaxHeight}px`
       }
     }
-  }, [isExpanded, article.extract, isTouchDevice])
+  }, [isExpanded, isTouchDevice]) // Removed unnecessary dependency: article.extract
 
   const handleSeeMore = () => {
     setIsExpanded(true)
@@ -111,20 +86,24 @@ export default function WikiArticle({ article }: ArticleProps) {
           <div className={`mb-4 ${isExpanded || isTouchDevice ? "overflow-y-auto" : "overflow-hidden"}`}>
             <p
               ref={extractRef}
-              className="transition-all duration-300 ease-in-out"
+              className="transition-all duration-300 ease-in-out text-sm sm:text-base"
               style={{
                 maxHeight: isExpanded || isTouchDevice ? "none" : `${lineHeight * 8}px`,
+                display: "-webkit-box",
+                WebkitLineClamp: isExpanded || isTouchDevice ? "unset" : "8",
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
               }}
             >
-              {isExpanded || isTouchDevice || !isTruncated ? article.extract : truncatedText}
+              {article.extract}
             </p>
           </div>
           {isTruncated && !isExpanded && !isTouchDevice && (
             <button
               onClick={handleSeeMore}
-              className="w-full text-left text-[#606060] font-bold text-xs sm:text-sm py-1 sm:py-2 flex items-center hover:bg-gray-100 transition-colors duration-200"
+              className="w-full text-left text-[#606060] font-bold text-sm sm:text-base py-1 sm:py-2 flex items-center hover:bg-gray-100 transition-colors duration-200"
             >
-              <ChevronDown className="mr-1" size={14} />
+              <ChevronDown className="mr-1" size={16} />
               Show more
             </button>
           )}
@@ -132,12 +111,12 @@ export default function WikiArticle({ article }: ArticleProps) {
             href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#3366cc] hover:underline inline-flex items-center read-more-link mt-1 sm:mt-2 text-xs sm:text-sm"
+            className="text-[#3366cc] hover:underline inline-flex items-center read-more-link mt-1 sm:mt-2 text-sm sm:text-base"
           >
             Read more on Wikipedia
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-3 w-3 sm:h-4 sm:w-4 ml-1"
+              className="h-4 w-4 sm:h-5 sm:w-5 ml-1"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
