@@ -51,6 +51,7 @@ export default function WikiFeed() {
   const [articles, setArticles] = useState<Article[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(0)
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -72,7 +73,7 @@ export default function WikiFeed() {
 
       const topArticles = popularData.items[0].articles
         .filter((article: PopularArticle) => !article.article.startsWith("Special:") && article.article !== "Main_Page")
-        .slice(articles.length, articles.length + 10)
+        .slice(page * 10, (page + 1) * 10)
 
       if (topArticles.length === 0) {
         setHasMore(false)
@@ -96,28 +97,24 @@ export default function WikiFeed() {
         }
       })
 
-      // Filter out any duplicate articles
-      const uniqueNewArticles = newArticles.filter(
-        (newArticle) => !articles.some((existingArticle) => existingArticle.pageid === newArticle.pageid),
-      )
-
-      setArticles((prevArticles) => [...prevArticles, ...uniqueNewArticles])
+      setArticles((prevArticles) => [...prevArticles, ...newArticles])
+      setPage((prevPage) => prevPage + 1)
     } catch (error) {
       console.error("Error fetching articles:", error)
     } finally {
       setIsLoading(false)
     }
-  }, [articles, isLoading, hasMore])
+  }, [isLoading, hasMore, page])
 
   useEffect(() => {
     fetchTrendingArticles()
-  }, [fetchTrendingArticles]) // Added fetchTrendingArticles to the dependency array
+  }, [])
 
   useEffect(() => {
-    if (inView) {
+    if (inView && !isLoading) {
       fetchTrendingArticles()
     }
-  }, [inView, fetchTrendingArticles])
+  }, [inView, isLoading, fetchTrendingArticles])
 
   return (
     <div className="h-[calc(100vh-5rem)] overflow-y-auto snap-y snap-mandatory">
