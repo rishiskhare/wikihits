@@ -17,8 +17,6 @@ interface ArticleProps {
     }
     views: number
   }
-  currentIndex: number
-  totalArticles: number
 }
 
 export default function WikiArticle({ article }: ArticleProps) {
@@ -42,12 +40,10 @@ export default function WikiArticle({ article }: ArticleProps) {
       const initialMaxHeight = computedLineHeight * 8 // 8 lines
       const expandedMaxHeight = computedLineHeight * 12 // 12 lines
 
-      // Check if the content is truncated
       const isTrunc = extractElement.scrollHeight > initialMaxHeight
       setIsTruncated(isTrunc)
 
       if (isTrunc && !isExpanded && !isTouchDevice) {
-        // Calculate the visible text and add ellipsis
         const words = article.extract.split(" ")
         let visibleText = ""
         let lineCount = 0
@@ -119,18 +115,14 @@ export default function WikiArticle({ article }: ArticleProps) {
               {isExpanded || isTouchDevice || !isTruncated ? article.extract : truncatedText}
             </p>
           </div>
-          {isTruncated && !isExpanded && (
-            <>
-              {!isTouchDevice && (
-                <button
-                  onClick={handleSeeMore}
-                  className="w-full text-left text-[#606060] font-bold text-xs sm:text-sm py-1 sm:py-2 flex items-center hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <ChevronDown className="mr-1" size={14} />
-                  Show more
-                </button>
-              )}
-            </>
+          {isTruncated && !isExpanded && !isTouchDevice && (
+            <button
+              onClick={handleSeeMore}
+              className="w-full text-left text-[#606060] font-bold text-xs sm:text-sm py-1 sm:py-2 flex items-center hover:bg-gray-100 transition-colors duration-200"
+            >
+              <ChevronDown className="mr-1" size={14} />
+              Show more
+            </button>
           )}
           <Link
             href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}

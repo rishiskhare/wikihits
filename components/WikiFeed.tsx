@@ -63,7 +63,7 @@ export default function WikiFeed() {
     setIsLoading(true)
     try {
       const date = new Date()
-      date.setDate(date.getDate() - 1) // Get yesterday's date
+      date.setDate(date.getDate() - 1)
       const dateString = date.toISOString().split("T")[0].replace(/-/g, "/")
 
       const popularResponse = await fetch(
@@ -108,7 +108,7 @@ export default function WikiFeed() {
 
   useEffect(() => {
     fetchTrendingArticles()
-  }, [])
+  }, [fetchTrendingArticles])
 
   useEffect(() => {
     if (inView && !isLoading) {
@@ -125,7 +125,7 @@ export default function WikiFeed() {
           className="h-full flex items-center justify-center snap-start"
         >
           <div className="w-full max-w-3xl mx-auto px-4">
-            <WikiArticle article={article} currentIndex={index} totalArticles={articles.length} />
+            <WikiArticle article={article} />
           </div>
         </div>
       ))}
