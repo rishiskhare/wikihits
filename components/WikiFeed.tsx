@@ -74,7 +74,7 @@ export default function WikiFeed() {
       // Fetch 5 articles at a time
       const topArticles = popularData.items[0].articles
         .filter((article: PopularArticle) => !article.article.startsWith("Special:") && article.article !== "Main_Page")
-        .slice(page * 1, (page + 1) * 1)
+        .slice(page * 3, (page + 1) * 3)
 
       if (topArticles.length === 0) {
         setHasMore(false)
