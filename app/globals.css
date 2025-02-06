@@ -45,7 +45,7 @@ body {
 .scroll-container {
   height: calc(100vh - 5rem); /* Adjust for header height */
   overflow-y: scroll;
-  scroll-snap-type: y proximity; /* Changed from mandatory to proximity for smoother scrolling */
+  scroll-snap-type: y proximity;
 }
 
 .scroll-section {

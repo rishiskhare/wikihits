@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import WikiArticle from "./WikiArticle"
 import { useInView } from "react-intersection-observer"
-import { Element } from "react-scroll"
 import ScrollButtons from "./ScrollButtons"
 
 interface Article {
@@ -83,7 +82,7 @@ export default function WikiFeed() {
             article.article !== "Main_Page" &&
             article.article !== "Wikipedia:Featured_pictures",
         )
-        .slice(page * 3, (page + 1) * 3)
+        .slice(page * 5, (page + 1) * 5)
 
       if (topArticles.length === 0) {
         setHasMore(false)
@@ -128,14 +127,7 @@ export default function WikiFeed() {
   const scrollToArticle = (direction: "up" | "down") => {
     const nextArticle = direction === "up" ? currentArticle - 1 : currentArticle + 1
     if (nextArticle >= 0 && nextArticle < articles.length) {
-      const container = containerRef.current
-      if (container) {
-        const articleElement = container.querySelector(`#article-${nextArticle}`)
-        if (articleElement) {
-          articleElement.scrollIntoView({ behavior: "smooth", block: "start" })
-          setCurrentArticle(nextArticle)
-        }
-      }
+      setCurrentArticle(nextArticle)
     }
   }
 
@@ -147,16 +139,15 @@ export default function WikiFeed() {
         id="wiki-feed-container"
       >
         {articles.map((article, index) => (
-          <Element
+          <div
             key={`${article.pageid}-${index}`}
-            name={`article-${index}`}
-            className="h-full flex items-center justify-center snap-start"
             id={`article-${index}`}
+            className="h-full flex items-center justify-center snap-start"
           >
             <div className="w-full max-w-3xl mx-auto px-4">
               <WikiArticle article={article} />
             </div>
-          </Element>
+          </div>
         ))}
         {hasMore && (
           <div ref={ref} className="h-20 flex items-center justify-center">
