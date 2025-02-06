@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback } from "react"
 import WikiArticle from "./WikiArticle"
 import { useInView } from "react-intersection-observer"
-import ScrollButtons from "./ScrollButtons"
 
 interface Article {
   title: string
@@ -53,13 +52,15 @@ export default function WikiFeed() {
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(0)
-  const [currentArticle, setCurrentArticle] = useState(0)
-
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
 
   const { ref, inView } = useInView({
     threshold: 0,
   })
+
+  useEffect(() => {
+    setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0)
+  }, [])
 
   const fetchTrendingArticles = useCallback(async () => {
     if (isLoading || !hasMore) return
@@ -75,6 +76,7 @@ export default function WikiFeed() {
       )
       const popularData: PopularApiResponse = await popularResponse.json()
 
+      // Fetch 3 articles at a time
       const topArticles = popularData.items[0].articles
         .filter(
           (article: PopularArticle) =>
@@ -82,7 +84,7 @@ export default function WikiFeed() {
             article.article !== "Main_Page" &&
             article.article !== "Wikipedia:Featured_pictures",
         )
-        .slice(page * 5, (page + 1) * 5)
+        .slice(page * 3, (page + 1) * 3)
 
       if (topArticles.length === 0) {
         setHasMore(false)
@@ -115,51 +117,35 @@ export default function WikiFeed() {
     }
   }, [isLoading, hasMore, page])
 
-  const shouldFetch = useRef(true)
+  useEffect(() => {
+    if (articles.length === 0) {
+      fetchTrendingArticles()
+    }
+  }, [articles.length, fetchTrendingArticles])
 
   useEffect(() => {
-    if (shouldFetch.current || (inView && !isLoading && hasMore)) {
+    if (inView && !isLoading && hasMore) {
       fetchTrendingArticles()
-      shouldFetch.current = false
     }
-  }, [fetchTrendingArticles, inView, isLoading, hasMore])
-
-  const scrollToArticle = (direction: "up" | "down") => {
-    const nextArticle = direction === "up" ? currentArticle - 1 : currentArticle + 1
-    if (nextArticle >= 0 && nextArticle < articles.length) {
-      setCurrentArticle(nextArticle)
-    }
-  }
+  }, [inView, isLoading, hasMore, fetchTrendingArticles])
 
   return (
-    <div className="relative">
-      <div
-        ref={containerRef}
-        className="h-[calc(100vh-5rem)] mt-20 overflow-y-auto snap-y snap-mandatory"
-        id="wiki-feed-container"
-      >
-        {articles.map((article, index) => (
-          <div
-            key={`${article.pageid}-${index}`}
-            id={`article-${index}`}
-            className="h-full flex items-center justify-center snap-start"
-          >
-            <div className="w-full max-w-3xl mx-auto px-4">
-              <WikiArticle article={article} />
-            </div>
+    <div className="scroll-container mt-[var(--header-height)]">
+      {articles.map((article, index) => (
+        <div
+          key={`${article.pageid}-${index}`}
+          id={`article-${index}`}
+          className={`scroll-section ${
+            isTouchDevice ? "py-8" : "min-h-[calc(100vh-var(--header-height))]"
+          } lg:h-[calc(100vh-var(--header-height))] flex items-center justify-center`}
+          ref={index === articles.length - 1 ? ref : undefined}
+        >
+          <div className="w-full max-w-5xl mx-auto px-4">
+            <WikiArticle article={article} />
           </div>
-        ))}
-        {hasMore && (
-          <div ref={ref} className="h-20 flex items-center justify-center">
-            {isLoading ? "Loading more articles..." : "Scroll for more"}
-          </div>
-        )}
-      </div>
-      <ScrollButtons
-        totalArticles={articles.length}
-        currentArticle={currentArticle}
-        scrollToArticle={scrollToArticle}
-      />
+        </div>
+      ))}
+      {isLoading && <div className="h-20 flex items-center justify-center">Loading more articles...</div>}
     </div>
   )
 }

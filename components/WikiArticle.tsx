@@ -2,8 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useRef, useEffect, useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { useEffect, useState } from "react"
 
 interface ArticleProps {
   article: {
@@ -20,122 +19,66 @@ interface ArticleProps {
 }
 
 export default function WikiArticle({ article }: ArticleProps) {
-  const extractRef = useRef<HTMLParagraphElement>(null)
-  const [isTruncated, setIsTruncated] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [lineHeight, setLineHeight] = useState(0)
-  const [truncatedText, setTruncatedText] = useState("")
   const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const [isVertical, setIsVertical] = useState(false)
 
   useEffect(() => {
     setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0)
-  }, [])
-
-  useEffect(() => {
-    const extractElement = extractRef.current
-    if (extractElement) {
-      const computedLineHeight = Number.parseFloat(window.getComputedStyle(extractElement).lineHeight)
-      setLineHeight(computedLineHeight)
-
-      const initialMaxHeight = computedLineHeight * 8 // 8 lines
-
-      const isTrunc = extractElement.scrollHeight > initialMaxHeight
-      setIsTruncated(isTrunc)
-
-      if (isTrunc && !isExpanded && !isTouchDevice) {
-        const words = article.extract.split(" ")
-        let visibleText = ""
-        let lineCount = 0
-        let i = 0
-
-        while (lineCount < 8 && i < words.length) {
-          const testText = visibleText + words[i] + " "
-          extractElement.textContent = testText
-          if (extractElement.scrollHeight > lineCount * computedLineHeight) {
-            lineCount++
-            if (lineCount === 8) {
-              visibleText = visibleText.trim() + "..."
-              break
-            }
-          }
-          visibleText += words[i] + " "
-          i++
-        }
-
-        setTruncatedText(visibleText)
-      }
-
-      if (!isTouchDevice) {
-        extractElement.style.maxHeight = isExpanded ? "none" : `${initialMaxHeight}px`
-      }
+    if (article.thumbnail) {
+      setIsVertical(article.thumbnail.height > article.thumbnail.width)
     }
-  }, [isExpanded, article.extract, isTouchDevice])
+  }, [article.thumbnail])
 
-  const handleSeeMore = () => {
-    setIsExpanded(true)
-  }
+  const imageClasses = `
+    rounded-t-lg lg:rounded-l-lg lg:rounded-tr-none w-full h-full
+    object-contain lg:${isVertical ? "object-cover" : "object-contain"}
+  `
 
   return (
-    <article className="bg-white rounded-lg shadow-md p-4 sm:p-6 border border-gray-200 w-full max-h-[calc(100vh-12rem)] overflow-y-auto">
-      <h2 className="text-xl sm:text-3xl mb-1 sm:mb-2 text-[#202122]">{article.title}</h2>
-      <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2 sm:mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-          <path
-            fillRule="evenodd"
-            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-            clipRule="evenodd"
+    <article className="bg-white rounded-lg shadow-md border border-gray-200 w-full overflow-hidden flex flex-col lg:flex-row lg:h-[36rem]">
+      <div className="relative w-full h-[12rem] lg:w-1/2 lg:h-full flex items-center justify-center bg-gray-100">
+        {article.thumbnail ? (
+          <Image
+            src={article.thumbnail.source || "/placeholder.svg"}
+            alt={article.title}
+            width={500}
+            height={550}
+            className={imageClasses}
           />
-        </svg>
-        {article.views.toLocaleString()} views
-      </div>
-      <div className="relative">
-        {article.thumbnail && (
-          <div className="float-left mr-4 mb-4" style={{ height: `${lineHeight * 8}px`, width: "auto" }}>
-            <Image
-              src={article.thumbnail.source || "/placeholder.svg"}
-              alt={article.title}
-              width={article.thumbnail.width}
-              height={article.thumbnail.height}
-              style={{ height: "100%", width: "auto", maxWidth: "100%" }}
-              className="rounded-lg object-cover"
-            />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-gray-400 text-2xl">No image available</span>
           </div>
         )}
-        <div className="wiki-content">
-          <div className={`mb-4 ${isExpanded || isTouchDevice ? "" : "overflow-hidden"}`}>
-            <p
-              ref={extractRef}
-              className="transition-all duration-300 ease-in-out"
-              style={{
-                maxHeight: isExpanded || isTouchDevice ? "none" : `${lineHeight * 8}px`,
-              }}
-            >
-              {isExpanded || isTouchDevice || !isTruncated ? article.extract : truncatedText}
-            </p>
-          </div>
-          {isTruncated && !isExpanded && !isTouchDevice && (
-            <button
-              onClick={handleSeeMore}
-              className="w-full text-left text-[#606060] font-bold text-xs sm:text-sm py-1 sm:py-2 flex items-center hover:bg-gray-100 transition-colors duration-200"
-            >
-              <ChevronDown className="mr-1" size={14} />
-              Show more
-            </button>
-          )}
-        </div>
       </div>
-      <div className="mt-4">
+      <div className={`p-4 sm:p-6 w-full lg:w-1/2 ${isTouchDevice ? "" : "h-[20rem]"} lg:h-full flex flex-col`}>
+        <h2 className="text-2xl sm:text-3xl mb-2 text-[#202122]">{article.title}</h2>
+        <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+            <path
+              fillRule="evenodd"
+              d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+              clipRule="evenodd"
+            />
+          </svg>
+          {article.views.toLocaleString()} views
+        </div>
+        <div
+          className={`wiki-content flex-1 ${isTouchDevice ? "" : "overflow-y-auto max-h-[calc(20rem-8rem)]"} lg:max-h-full mb-4`}
+        >
+          <p className="transition-all duration-300 ease-in-out">{article.extract}</p>
+        </div>
         <Link
           href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#3366cc] hover:underline inline-flex items-center read-more-link text-xs sm:text-sm"
+          className="text-[#3366cc] hover:underline inline-flex items-center read-more-link text-sm sm:text-base mt-auto"
         >
           Read more on Wikipedia
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-3 w-3 sm:h-4 sm:w-4 ml-1"
+            className="h-4 w-4 sm:h-5 sm:w-5 ml-1.5"
             viewBox="0 0 20 20"
             fill="currentColor"
           >

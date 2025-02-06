@@ -7,7 +7,7 @@
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 246, 246, 246;
-  --wikihits-primary: #3366cc;
+  --header-height: 5rem;
 }
 
 body {
@@ -43,14 +43,21 @@ body {
 }
 
 .scroll-container {
-  height: calc(100vh - 5rem); /* Adjust for header height */
+  height: calc(100vh - var(--header-height));
   overflow-y: scroll;
-  scroll-snap-type: y proximity;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .scroll-section {
   scroll-snap-align: start;
-  min-height: calc(100vh - 5rem); /* Adjust for header height */
+  height: calc(100vh - var(--header-height));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -59,16 +66,5 @@ body {
 .read-more-link {
   font-family: "Roboto", sans-serif;
   font-weight: 400;
-  color: var(--wikihits-primary);
-}
-
-#wiki-feed-container {
-  scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
-}
-
-#wiki-feed-container > div {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 
