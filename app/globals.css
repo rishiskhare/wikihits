@@ -7,6 +7,7 @@
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 246, 246, 246;
+  --wikihits-primary: #3366cc;
 }
 
 body {
@@ -58,6 +59,7 @@ body {
 .read-more-link {
   font-family: "Roboto", sans-serif;
   font-weight: 400;
+  color: var(--wikihits-primary);
 }
 
 #wiki-feed-container {

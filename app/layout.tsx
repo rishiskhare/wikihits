@@ -5,7 +5,7 @@ import type React from "react"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "WikiSwipe",
+  title: "WikiHits",
   description: "Explore today's most popular Wikipedia articles",
 }
 

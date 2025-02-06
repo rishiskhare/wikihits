@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <main className="flex flex-col min-h-screen bg-[#f8f9fa]">
       <Header />
-      <div className="flex-grow overflow-y-auto">
+      <div className="flex-grow overflow-hidden">
         <WikiFeed />
       </div>
     </main>
