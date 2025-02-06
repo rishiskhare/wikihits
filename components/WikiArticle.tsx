@@ -19,14 +19,26 @@ interface ArticleProps {
 }
 
 export default function WikiArticle({ article }: ArticleProps) {
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
   const [isVertical, setIsVertical] = useState(false)
+  const [truncatedContent, setTruncatedContent] = useState(article.extract)
   const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0)
     if (article.thumbnail) {
       setIsVertical(article.thumbnail.height > article.thumbnail.width)
     }
   }, [article.thumbnail])
+
+  useEffect(() => {
+    if (isTouchDevice) {
+      const lines = article.extract.split("\n").slice(0, 9)
+      setTruncatedContent(lines.join("\n"))
+    } else {
+      setTruncatedContent(article.extract)
+    }
+  }, [article.extract, isTouchDevice])
 
   const maxHeight = "calc(100vh - var(--header-height) - 3rem)"
 
@@ -70,8 +82,10 @@ export default function WikiArticle({ article }: ArticleProps) {
           </svg>
           {article.views.toLocaleString()} views
         </div>
-        <div className={`wiki-content flex-1 ${article.thumbnail ? "overflow-y-auto" : ""} mb-4`}>
-          <p className="text-base sm:text-lg transition-all duration-300 ease-in-out">{article.extract}</p>
+        <div className={`wiki-content flex-1 ${article.thumbnail && !isTouchDevice ? "overflow-y-auto" : ""} mb-4`}>
+          <p className="text-base sm:text-lg transition-all duration-300 ease-in-out line-clamp-9">
+            {truncatedContent}
+          </p>
         </div>
         <Link
           href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}
