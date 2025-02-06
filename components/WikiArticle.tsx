@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 
 interface ArticleProps {
   article: {
@@ -20,6 +20,7 @@ interface ArticleProps {
 
 export default function WikiArticle({ article }: ArticleProps) {
   const [isVertical, setIsVertical] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (article.thumbnail) {
@@ -27,14 +28,21 @@ export default function WikiArticle({ article }: ArticleProps) {
     }
   }, [article.thumbnail])
 
+  const maxHeight = "calc(100vh - var(--header-height) - 3rem)"
+
   return (
-    <article className="bg-white rounded-lg shadow-md border border-gray-200 w-full max-w-screen-sm mx-auto overflow-hidden flex flex-col lg:flex-row lg:max-w-5xl h-[calc(100vh-var(--header-height)-3rem)]">
-      <div
-        className={`relative w-full h-[30%] sm:h-[35%] lg:w-1/2 lg:h-full flex items-center justify-center bg-gray-100 ${
-          isVertical ? "lg:items-start" : "lg:items-center"
-        }`}
-      >
-        {article.thumbnail ? (
+    <article
+      className={`bg-white rounded-lg shadow-md border border-gray-200 w-full max-w-screen-sm mx-auto overflow-hidden flex flex-col lg:flex-row lg:max-w-5xl ${
+        article.thumbnail ? `h-[${maxHeight}]` : "max-h-[${maxHeight}]"
+      }`}
+      style={{ height: article.thumbnail ? maxHeight : "auto" }}
+    >
+      {article.thumbnail && (
+        <div
+          className={`relative w-full h-[30%] sm:h-[35%] lg:w-1/2 lg:h-full flex items-center justify-center bg-gray-100 ${
+            isVertical ? "lg:items-start" : "lg:items-center"
+          }`}
+        >
           <Image
             src={article.thumbnail.source || "/placeholder.svg"}
             alt={article.title}
@@ -44,13 +52,12 @@ export default function WikiArticle({ article }: ArticleProps) {
               object-contain
               ${isVertical ? "lg:object-cover" : "lg:object-contain"}`}
           />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-gray-400 text-2xl">No image available</span>
-          </div>
-        )}
-      </div>
-      <div className="p-4 sm:p-6 w-full lg:w-1/2 h-[70%] sm:h-[65%] lg:h-full flex flex-col">
+        </div>
+      )}
+      <div
+        className={`p-4 sm:p-6 w-full ${article.thumbnail ? "lg:w-1/2 h-[70%] sm:h-[65%] lg:h-full" : ""} flex flex-col`}
+        ref={contentRef}
+      >
         <h2 className="text-3xl sm:text-4xl mb-2 text-[#202122]">{article.title}</h2>
         <div className="flex items-center text-sm sm:text-base text-gray-500 mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -63,7 +70,7 @@ export default function WikiArticle({ article }: ArticleProps) {
           </svg>
           {article.views.toLocaleString()} views
         </div>
-        <div className="wiki-content flex-1 overflow-y-auto mb-4">
+        <div className={`wiki-content flex-1 ${article.thumbnail ? "overflow-y-auto" : ""} mb-4`}>
           <p className="text-base sm:text-lg transition-all duration-300 ease-in-out">{article.extract}</p>
         </div>
         <Link
