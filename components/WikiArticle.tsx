@@ -38,7 +38,6 @@ export default function WikiArticle({ article }: ArticleProps) {
       setLineHeight(computedLineHeight)
 
       const initialMaxHeight = computedLineHeight * 8 // 8 lines
-      const expandedMaxHeight = computedLineHeight * 12 // 12 lines
 
       const isTrunc = extractElement.scrollHeight > initialMaxHeight
       setIsTruncated(isTrunc)
@@ -67,7 +66,7 @@ export default function WikiArticle({ article }: ArticleProps) {
       }
 
       if (!isTouchDevice) {
-        extractElement.style.maxHeight = isExpanded ? `${expandedMaxHeight}px` : `${initialMaxHeight}px`
+        extractElement.style.maxHeight = isExpanded ? "none" : `${initialMaxHeight}px`
       }
     }
   }, [isExpanded, article.extract, isTouchDevice])
@@ -90,21 +89,21 @@ export default function WikiArticle({ article }: ArticleProps) {
         </svg>
         {article.views.toLocaleString()} views
       </div>
-      <div className="flex flex-row space-x-4">
+      <div className="relative">
         {article.thumbnail && (
-          <div className="w-1/3 flex-shrink-0">
+          <div className="float-left mr-4 mb-4" style={{ height: `${lineHeight * 8}px`, width: "auto" }}>
             <Image
               src={article.thumbnail.source || "/placeholder.svg"}
               alt={article.title}
               width={article.thumbnail.width}
               height={article.thumbnail.height}
-              layout="responsive"
-              className="rounded-lg"
+              style={{ height: "100%", width: "auto", maxWidth: "100%" }}
+              className="rounded-lg object-cover"
             />
           </div>
         )}
-        <div className={`wiki-content flex-grow ${article.thumbnail ? "w-2/3" : "w-full"}`}>
-          <div className={`mb-4 ${isExpanded || isTouchDevice ? "overflow-y-auto" : "overflow-hidden"}`}>
+        <div className="wiki-content">
+          <div className={`mb-4 ${isExpanded || isTouchDevice ? "" : "overflow-hidden"}`}>
             <p
               ref={extractRef}
               className="transition-all duration-300 ease-in-out"
@@ -124,27 +123,29 @@ export default function WikiArticle({ article }: ArticleProps) {
               Show more
             </button>
           )}
-          <Link
-            href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#3366cc] hover:underline inline-flex items-center read-more-link mt-1 sm:mt-2 text-xs sm:text-sm"
-          >
-            Read more on Wikipedia
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3 w-3 sm:h-4 sm:w-4 ml-1"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </Link>
         </div>
+      </div>
+      <div className="mt-4">
+        <Link
+          href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#3366cc] hover:underline inline-flex items-center read-more-link text-xs sm:text-sm"
+        >
+          Read more on Wikipedia
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-3 w-3 sm:h-4 sm:w-4 ml-1"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </Link>
       </div>
     </article>
   )
