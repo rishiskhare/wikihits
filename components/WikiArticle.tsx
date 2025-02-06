@@ -19,19 +19,21 @@ interface ArticleProps {
 }
 
 export default function WikiArticle({ article }: ArticleProps) {
-  const [isTouchDevice, setIsTouchDevice] = useState(false)
   const [isVertical, setIsVertical] = useState(false)
 
   useEffect(() => {
-    setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0)
     if (article.thumbnail) {
       setIsVertical(article.thumbnail.height > article.thumbnail.width)
     }
   }, [article.thumbnail])
 
   return (
-    <article className="bg-white rounded-lg shadow-md border border-gray-200 w-full max-w-screen-sm mx-auto overflow-hidden flex flex-col lg:flex-row lg:max-w-5xl lg:h-[36rem]">
-      <div className="relative w-full h-[14rem] sm:h-[16rem] lg:w-1/2 lg:h-full flex items-center justify-center bg-gray-100">
+    <article className="bg-white rounded-lg shadow-md border border-gray-200 w-full max-w-screen-sm mx-auto overflow-hidden flex flex-col lg:flex-row lg:max-w-5xl h-[calc(100vh-var(--header-height)-3rem)]">
+      <div
+        className={`relative w-full h-[30%] sm:h-[35%] lg:w-1/2 lg:h-full flex items-center justify-center bg-gray-100 ${
+          isVertical ? "lg:items-start" : "lg:items-center"
+        }`}
+      >
         {article.thumbnail ? (
           <Image
             src={article.thumbnail.source || "/placeholder.svg"}
@@ -40,7 +42,7 @@ export default function WikiArticle({ article }: ArticleProps) {
             height={550}
             className={`rounded-t-lg lg:rounded-l-lg lg:rounded-tr-none w-full h-full
               object-contain
-              lg:${isVertical ? "object-cover" : "object-contain"}`}
+              ${isVertical ? "lg:object-cover" : "lg:object-contain"}`}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -48,11 +50,9 @@ export default function WikiArticle({ article }: ArticleProps) {
           </div>
         )}
       </div>
-      <div
-        className={`p-4 sm:p-6 w-full lg:w-1/2 ${isTouchDevice ? "h-[22rem] sm:h-[24rem]" : "h-[22rem]"} lg:h-full flex flex-col`}
-      >
-        <h2 className="text-2xl sm:text-3xl mb-2 text-[#202122]">{article.title}</h2>
-        <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-4">
+      <div className="p-4 sm:p-6 w-full lg:w-1/2 h-[70%] sm:h-[65%] lg:h-full flex flex-col">
+        <h2 className="text-3xl sm:text-4xl mb-2 text-[#202122]">{article.title}</h2>
+        <div className="flex items-center text-sm sm:text-base text-gray-500 mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
             <path
@@ -63,16 +63,14 @@ export default function WikiArticle({ article }: ArticleProps) {
           </svg>
           {article.views.toLocaleString()} views
         </div>
-        <div
-          className={`wiki-content flex-1 ${isTouchDevice ? "" : "overflow-y-auto max-h-[calc(22rem-8rem)]"} lg:max-h-full mb-4`}
-        >
-          <p className="transition-all duration-300 ease-in-out">{article.extract}</p>
+        <div className="wiki-content flex-1 overflow-y-auto mb-4">
+          <p className="text-base sm:text-lg transition-all duration-300 ease-in-out">{article.extract}</p>
         </div>
         <Link
           href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#3366cc] hover:underline inline-flex items-center read-more-link text-sm sm:text-base mt-auto"
+          className="text-[#3366cc] hover:underline inline-flex items-center read-more-link text-base sm:text-lg mt-auto"
         >
           Read more on Wikipedia
           <svg

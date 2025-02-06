@@ -52,15 +52,9 @@ export default function WikiFeed() {
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(0)
-  const [isTouchDevice, setIsTouchDevice] = useState(false)
-
   const { ref, inView } = useInView({
     threshold: 0,
   })
-
-  useEffect(() => {
-    setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0)
-  }, [])
 
   const fetchTrendingArticles = useCallback(async () => {
     if (isLoading || !hasMore) return
@@ -81,6 +75,7 @@ export default function WikiFeed() {
         .filter(
           (article: PopularArticle) =>
             !article.article.startsWith("Special:") &&
+            !article.article.startsWith("Portal:") &&
             article.article !== "Main_Page" &&
             article.article !== "Wikipedia:Featured_pictures",
         )
@@ -135,9 +130,7 @@ export default function WikiFeed() {
         <div
           key={`${article.pageid}-${index}`}
           id={`article-${index}`}
-          className={`scroll-section ${
-            isTouchDevice ? "py-8" : "min-h-[calc(100vh-var(--header-height))]"
-          } lg:h-[calc(100vh-var(--header-height))] flex items-center justify-center`}
+          className={`scroll-section w-full py-4 flex items-center justify-center`}
           ref={index === articles.length - 1 ? ref : undefined}
         >
           <div className="w-full max-w-5xl mx-auto px-4">
