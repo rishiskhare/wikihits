@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import WikiArticle from "./WikiArticle"
 import { useInView } from "react-intersection-observer"
 
@@ -71,9 +71,10 @@ export default function WikiFeed() {
       )
       const popularData: PopularApiResponse = await popularResponse.json()
 
+      // Fetch 5 articles at a time
       const topArticles = popularData.items[0].articles
         .filter((article: PopularArticle) => !article.article.startsWith("Special:") && article.article !== "Main_Page")
-        .slice(page * 10, (page + 1) * 10)
+        .slice(page * 1, (page + 1) * 1)
 
       if (topArticles.length === 0) {
         setHasMore(false)
@@ -106,15 +107,14 @@ export default function WikiFeed() {
     }
   }, [isLoading, hasMore, page])
 
-  useEffect(() => {
-    fetchTrendingArticles()
-  }, [fetchTrendingArticles])
+  const shouldFetch = useRef(true)
 
   useEffect(() => {
-    if (inView && !isLoading) {
+    if (shouldFetch.current || (inView && !isLoading && hasMore)) {
       fetchTrendingArticles()
+      shouldFetch.current = false
     }
-  }, [inView, isLoading, fetchTrendingArticles])
+  }, [fetchTrendingArticles, inView, isLoading, hasMore])
 
   return (
     <div className="h-[calc(100vh-5rem)] overflow-y-auto snap-y snap-mandatory">
