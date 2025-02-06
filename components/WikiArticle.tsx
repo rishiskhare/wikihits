@@ -21,7 +21,6 @@ interface ArticleProps {
 export default function WikiArticle({ article }: ArticleProps) {
   const [isTouchDevice, setIsTouchDevice] = useState(false)
   const [isVertical, setIsVertical] = useState(false)
-  const [truncatedContent, setTruncatedContent] = useState(article.extract)
   const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -31,27 +30,20 @@ export default function WikiArticle({ article }: ArticleProps) {
     }
   }, [article.thumbnail])
 
-  useEffect(() => {
-    if (isTouchDevice) {
-      const lines = article.extract.split("\n").slice(0, 9)
-      setTruncatedContent(lines.join("\n"))
-    } else {
-      setTruncatedContent(article.extract)
-    }
-  }, [article.extract, isTouchDevice])
-
   const maxHeight = "calc(100vh - var(--header-height) - 3rem)"
 
   return (
     <article
       className={`bg-white rounded-lg shadow-md border border-gray-200 w-full max-w-screen-sm mx-auto overflow-hidden flex flex-col lg:flex-row lg:max-w-5xl ${
-        article.thumbnail ? `h-[${maxHeight}]` : "max-h-[${maxHeight}]"
+        isTouchDevice ? "" : article.thumbnail ? `h-[${maxHeight}]` : `max-h-[${maxHeight}]`
       }`}
-      style={{ height: article.thumbnail ? maxHeight : "auto" }}
+      style={isTouchDevice ? {} : { height: article.thumbnail ? maxHeight : "auto" }}
     >
       {article.thumbnail && (
         <div
-          className={`relative w-full h-[30%] sm:h-[35%] lg:w-1/2 lg:h-full flex items-center justify-center bg-gray-100 ${
+          className={`relative w-full ${
+            isTouchDevice ? "h-48" : "h-[30%] sm:h-[35%]"
+          } lg:w-1/2 lg:h-full flex items-center justify-center bg-gray-100 ${
             isVertical ? "lg:items-start" : "lg:items-center"
           }`}
         >
@@ -67,7 +59,9 @@ export default function WikiArticle({ article }: ArticleProps) {
         </div>
       )}
       <div
-        className={`p-4 sm:p-6 w-full ${article.thumbnail ? "lg:w-1/2 h-[70%] sm:h-[65%] lg:h-full" : ""} flex flex-col`}
+        className={`p-4 sm:p-6 w-full ${
+          isTouchDevice ? "" : article.thumbnail ? "lg:w-1/2 h-[70%] sm:h-[65%] lg:h-full" : "h-full"
+        } flex flex-col ${!isTouchDevice ? "overflow-y-auto" : ""}`}
         ref={contentRef}
       >
         <h2 className="text-3xl sm:text-4xl mb-2 text-[#202122]">{article.title}</h2>
@@ -82,9 +76,11 @@ export default function WikiArticle({ article }: ArticleProps) {
           </svg>
           {article.views.toLocaleString()} views
         </div>
-        <div className={`wiki-content flex-1 ${article.thumbnail && !isTouchDevice ? "overflow-y-auto" : ""} mb-4`}>
-          <p className="text-base sm:text-lg transition-all duration-300 ease-in-out line-clamp-9">
-            {truncatedContent}
+        <div className={`wiki-content flex-1 ${!isTouchDevice ? "overflow-y-auto" : ""} mb-4`}>
+          <p
+            className={`text-base sm:text-lg transition-all duration-300 ease-in-out ${isTouchDevice ? "line-clamp-6" : ""}`}
+          >
+            {article.extract}
           </p>
         </div>
         <Link
