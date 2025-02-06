@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import WikiArticle from "./WikiArticle"
 import { useInView } from "react-intersection-observer"
+import { Element } from "react-scroll"
+import ScrollButtons from "./ScrollButtons"
 
 interface Article {
   title: string
@@ -52,6 +54,9 @@ export default function WikiFeed() {
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(0)
+  const [currentArticle, setCurrentArticle] = useState(0)
+
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -71,7 +76,6 @@ export default function WikiFeed() {
       )
       const popularData: PopularApiResponse = await popularResponse.json()
 
-      // Fetch 5 articles at a time
       const topArticles = popularData.items[0].articles
         .filter((article: PopularArticle) => !article.article.startsWith("Special:") && article.article !== "Main_Page")
         .slice(page * 3, (page + 1) * 3)
@@ -116,24 +120,50 @@ export default function WikiFeed() {
     }
   }, [fetchTrendingArticles, inView, isLoading, hasMore])
 
+  const scrollToArticle = (direction: "up" | "down") => {
+    const nextArticle = direction === "up" ? currentArticle - 1 : currentArticle + 1
+    if (nextArticle >= 0 && nextArticle < articles.length) {
+      const container = containerRef.current
+      if (container) {
+        const articleElement = container.querySelector(`#article-${nextArticle}`)
+        if (articleElement) {
+          articleElement.scrollIntoView({ behavior: "smooth", block: "start" })
+          setCurrentArticle(nextArticle)
+        }
+      }
+    }
+  }
+
   return (
-    <div className="h-[calc(100vh-5rem)] overflow-y-auto snap-y snap-mandatory">
-      {articles.map((article, index) => (
-        <div
-          key={`${article.pageid}-${index}`}
-          id={`article-${index}`}
-          className="h-full flex items-center justify-center snap-start"
-        >
-          <div className="w-full max-w-3xl mx-auto px-4">
-            <WikiArticle article={article} />
+    <div className="relative">
+      <div
+        ref={containerRef}
+        className="h-[calc(100vh-5rem)] mt-20 overflow-y-auto snap-y snap-mandatory"
+        id="wiki-feed-container"
+      >
+        {articles.map((article, index) => (
+          <Element
+            key={`${article.pageid}-${index}`}
+            name={`article-${index}`}
+            className="h-full flex items-center justify-center snap-start"
+            id={`article-${index}`}
+          >
+            <div className="w-full max-w-3xl mx-auto px-4">
+              <WikiArticle article={article} />
+            </div>
+          </Element>
+        ))}
+        {hasMore && (
+          <div ref={ref} className="h-20 flex items-center justify-center">
+            {isLoading ? "Loading more articles..." : "Scroll for more"}
           </div>
-        </div>
-      ))}
-      {hasMore && (
-        <div ref={ref} className="h-20 flex items-center justify-center">
-          {isLoading ? "Loading more articles..." : "Scroll for more"}
-        </div>
-      )}
+        )}
+      </div>
+      <ScrollButtons
+        totalArticles={articles.length}
+        currentArticle={currentArticle}
+        scrollToArticle={scrollToArticle}
+      />
     </div>
   )
 }

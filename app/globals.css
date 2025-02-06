@@ -42,15 +42,17 @@ body {
 }
 
 .scroll-container {
-  height: 100vh;
+  height: calc(100vh - 5rem); /* Adjust for header height */
   overflow-y: scroll;
-  scroll-snap-type: y mandatory;
+  scroll-snap-type: y proximity; /* Changed from mandatory to proximity for smoother scrolling */
 }
 
 .scroll-section {
   scroll-snap-align: start;
-  height: 100vh;
-  overflow-y: auto;
+  min-height: calc(100vh - 5rem); /* Adjust for header height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .read-more-link {
@@ -58,31 +60,13 @@ body {
   font-weight: 400;
 }
 
-@keyframes bounce-up {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
+#wiki-feed-container {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
 }
 
-@keyframes bounce-down {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(5px);
-  }
-}
-
-.hover\:animate-bounce-up:hover {
-  animation: bounce-up 0.5s infinite;
-}
-
-.hover\:animate-bounce-down:hover {
-  animation: bounce-down 0.5s infinite;
+#wiki-feed-container > div {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
