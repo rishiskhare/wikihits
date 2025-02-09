@@ -161,7 +161,12 @@ export default function WikiArticle({ article }: ArticleProps) {
                       isExpanded ? "opacity-0" : "opacity-100"
                     } transition-opacity duration-500`}
                   >
-                    <div className="leading-relaxed line-clamp-3">{article.extract}</div>
+                    <div
+                      className="leading-relaxed line-clamp line-clamp-custom"
+                      style={{ "--line-clamp": 3 } as React.CSSProperties}
+                    >
+                      {article.extract}
+                    </div>
                     <button
                       onClick={toggleExpand}
                       className="block mt-2 text-[#3366cc] hover:underline text-base font-roboto font-bold"
@@ -176,9 +181,13 @@ export default function WikiArticle({ article }: ArticleProps) {
                       transition-opacity duration-500
                       ${isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"}
                     `}
-                    style={{ ['--line-clamp' as string]: lineClamp }}
                   >
-                    <div className="line-clamp">{article.extract}</div>
+                    <div
+                      className="line-clamp line-clamp-custom"
+                      style={{ "--line-clamp": lineClamp } as React.CSSProperties}
+                    >
+                      {article.extract}
+                    </div>
                     <button
                       onClick={toggleExpand}
                       className="block mt-2 text-[#3366cc] hover:underline text-base font-roboto font-bold"
