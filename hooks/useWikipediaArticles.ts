@@ -55,7 +55,7 @@ export function useWikipediaArticles() {
   const fetchPopularArticles = useCallback(async () => {
     try {
       const date = new Date()
-      date.setDate(date.getDate() - 2)
+      date.setDate(date.getDate() - 4)
       const dateString = date.toISOString().split("T")[0].replace(/-/g, "/")
 
       const popularResponse = await fetch(
