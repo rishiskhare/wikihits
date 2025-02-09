@@ -176,8 +176,9 @@ export default function WikiArticle({ article }: ArticleProps) {
                       transition-opacity duration-500
                       ${isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"}
                     `}
+                    style={{ ['--line-clamp' as string]: lineClamp }}
                   >
-                    <div className={`line-clamp-[${lineClamp}]`}>{article.extract}</div>
+                    <div className="line-clamp">{article.extract}</div>
                     <button
                       onClick={toggleExpand}
                       className="block mt-2 text-[#3366cc] hover:underline text-base font-roboto font-bold"
