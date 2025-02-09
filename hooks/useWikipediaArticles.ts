@@ -48,14 +48,14 @@ interface PopularApiResponse {
 export function useWikipediaArticles() {
   const [articles, setArticles] = useState<Article[]>([])
   const [popularArticles, setPopularArticles] = useState<PopularArticle[]>([])
+  const [page, setPage] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(0)
 
   const fetchPopularArticles = useCallback(async () => {
     try {
       const date = new Date()
-      date.setDate(date.getDate() - 4)
+      date.setDate(date.getDate() - 1)
       const dateString = date.toISOString().split("T")[0].replace(/-/g, "/")
 
       const popularResponse = await fetch(
@@ -77,61 +77,61 @@ export function useWikipediaArticles() {
   }, [])
 
   const fetchArticleBatch = useCallback(async () => {
-    if (isLoading || !hasMore) return
+    if (isLoading || !hasMore || !popularArticles.length) return
 
     setIsLoading(true)
     try {
-      // Fetch 20 articles at a time
-      const startIndex = page * 20
-      const endIndex = startIndex + 20
-      const batch = popularArticles.slice(startIndex, endIndex)
-
+      const batchSize = 20
+      const startIndex = page * batchSize
+      const batch = popularArticles.slice(startIndex, startIndex + batchSize)
+      
       if (batch.length === 0) {
         setHasMore(false)
         return
       }
 
-      const pageIds = batch.map((article: PopularArticle) => article.article).join("|")
+      const titles = batch.map(article => article.article).join("|")
       const contentResponse = await fetch(
-        `https://en.wikipedia.org/w/api.php?action=query&format=json&titles=${pageIds}&prop=extracts|pageimages&exintro&explaintext&pithumbsize=500&origin=*`,
+        `https://en.wikipedia.org/w/api.php?action=query&format=json&titles=${titles}&prop=extracts|pageimages&exintro&explaintext&pithumbsize=500&origin=*`,
       )
       const contentData: WikiApiResponse = await contentResponse.json()
 
-      const newArticles = Object.values(contentData.query.pages)
-        .filter((page) => page.thumbnail) // Only keep articles with thumbnails
-        .map((page) => {
-          const popularityData = batch.find((a: PopularArticle) => a.article === page.title.replace(/ /g, "_"))
+      const newArticles = batch
+        .map(popularArticle => {
+          const page = Object.values(contentData.query.pages).find(
+            p => p.title.replace(/ /g, "_") === popularArticle.article
+          )
+          if (!page?.thumbnail) return null
+          
           return {
             title: page.title,
             extract: page.extract,
             pageid: page.pageid,
             thumbnail: page.thumbnail,
-            views: popularityData ? popularityData.views : 0,
+            views: popularArticle.views,
           }
         })
+        .filter((article): article is Article => article !== null)
 
-      setArticles((prevArticles) => [...prevArticles, ...newArticles])
-      setPage((prevPage) => prevPage + 1)
-
-      if (endIndex >= popularArticles.length) {
-        setHasMore(false)
-      }
+      setArticles(prev => [...prev, ...newArticles])
+      setPage(prev => prev + 1)
+      setHasMore(startIndex + batchSize < popularArticles.length)
     } catch (error) {
       console.error("Error fetching article batch:", error)
     } finally {
       setIsLoading(false)
     }
-  }, [isLoading, hasMore, page, popularArticles])
+  }, [isLoading, hasMore, popularArticles, page])
 
   useEffect(() => {
     fetchPopularArticles()
   }, [fetchPopularArticles])
 
   useEffect(() => {
-    if (popularArticles.length > 0 && articles.length === 0) {
+    if (popularArticles.length > 0 && !isLoading && page === 0) {
       fetchArticleBatch()
     }
-  }, [popularArticles, articles.length, fetchArticleBatch])
+  }, [popularArticles, isLoading, page, fetchArticleBatch])
 
   const loadMoreArticles = useCallback(() => {
     if (!isLoading && hasMore) {
