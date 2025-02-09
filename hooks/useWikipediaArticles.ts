@@ -6,7 +6,7 @@ interface Article {
   title: string
   extract: string
   pageid: number
-  thumbnail?: {
+  thumbnail: {
     source: string
     width: number
     height: number
@@ -27,7 +27,7 @@ interface WikiApiResponse {
         title: string
         extract: string
         pageid: number
-        thumbnail?: {
+        thumbnail: {
           source: string
           width: number
           height: number
@@ -98,6 +98,7 @@ export function useWikipediaArticles() {
       const contentData: WikiApiResponse = await contentResponse.json()
 
       const newArticles = Object.values(contentData.query.pages)
+        .filter((page) => page.thumbnail) // Only keep articles with thumbnails
         .map((page) => {
           const popularityData = batch.find((a: PopularArticle) => a.article === page.title.replace(/ /g, "_"))
           return {
@@ -108,7 +109,6 @@ export function useWikipediaArticles() {
             views: popularityData ? popularityData.views : 0,
           }
         })
-        .filter((article) => article.thumbnail) // Only keep articles with thumbnails
 
       setArticles((prevArticles) => [...prevArticles, ...newArticles])
       setPage((prevPage) => prevPage + 1)

@@ -9,7 +9,7 @@ interface ArticleProps {
     title: string
     extract: string
     pageid: number
-    thumbnail?: {
+    thumbnail: {
       source: string
       width: number
       height: number
@@ -109,14 +109,12 @@ export default function WikiArticle({ article }: ArticleProps) {
       style={{ height: maxHeight }}
     >
       <div className="w-full md:w-1/2 h-full relative md:overflow-hidden">
-        {article.thumbnail && (
-          <Image
-            src={article.thumbnail.source || "/placeholder.svg"}
-            alt={article.title}
-            layout="fill"
-            objectFit="cover"
-          />
-        )}
+        <Image
+          src={article.thumbnail.source || "/placeholder.svg"}
+          alt={article.title}
+          layout="fill"
+          objectFit="cover"
+        />
       </div>
 
       <div className="w-full md:w-1/2 md:flex md:flex-col bg-white transition-all duration-500 ease-in-out overflow-hidden">
