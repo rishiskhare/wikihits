@@ -24,6 +24,7 @@ export default function WikiArticle({ article }: ArticleProps) {
   const [expandedHeight, setExpandedHeight] = useState(0)
   const [lineClamp, setLineClamp] = useState(20)
   const [maxHeight, setMaxHeight] = useState("100vh")
+  const [imageOrientation, setImageOrientation] = useState<"horizontal" | "vertical">("horizontal")
   const contentRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
   const expandedContentRef = useRef<HTMLDivElement>(null)
@@ -94,6 +95,12 @@ export default function WikiArticle({ article }: ArticleProps) {
     return () => window.removeEventListener("resize", updateMaxHeight)
   }, [])
 
+  useEffect(() => {
+    if (article.thumbnail) {
+      setImageOrientation(article.thumbnail.width >= article.thumbnail.height ? "horizontal" : "vertical")
+    }
+  }, [article.thumbnail])
+
   const toggleExpand = () => setIsExpanded(!isExpanded)
 
   const handleContentClick = (event: React.MouseEvent) => {
@@ -114,6 +121,14 @@ export default function WikiArticle({ article }: ArticleProps) {
           alt={article.title}
           layout="fill"
           objectFit="cover"
+          className="md:hidden"
+        />
+        <Image
+          src={article.thumbnail.source || "/placeholder.svg"}
+          alt={article.title}
+          layout="fill"
+          objectFit={imageOrientation === "horizontal" ? "contain" : "cover"}
+          className="hidden md:block"
         />
       </div>
 
