@@ -22,7 +22,7 @@ export default function WikiArticle({ article }: ArticleProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [previewHeight, setPreviewHeight] = useState(0)
   const [expandedHeight, setExpandedHeight] = useState(0)
-  const [lineClamp, setLineClamp] = useState(20)
+  const [lineClamp, setLineClamp] = useState(15)
   const [maxHeight, setMaxHeight] = useState("100vh")
   const [imageOrientation, setImageOrientation] = useState<"horizontal" | "vertical">("horizontal")
   const contentRef = useRef<HTMLDivElement>(null)
@@ -73,11 +73,11 @@ export default function WikiArticle({ article }: ArticleProps) {
   useEffect(() => {
     const titleLength = article.title.length
     if (titleLength > 50) {
-      setLineClamp(12)
+      setLineClamp(5)
     } else if (titleLength > 30) {
-      setLineClamp(15)
+      setLineClamp(8)
     } else {
-      setLineClamp(20)
+      setLineClamp(15)
     }
   }, [article.title])
 
