@@ -7,35 +7,25 @@
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 246, 246, 246;
-  --header-height: 5rem;
+  --header-height: 0px;
+  --header-height-lg: 80px;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
-  font-family: "Roboto", sans-serif;
-  font-size: 16px;
+  margin: 0;
+  padding: 0;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+.font-linux {
   font-family: "Linux Libertine", Georgia, serif;
   font-weight: 400;
 }
 
-.wiki-content {
+.font-roboto {
   font-family: "Roboto", sans-serif;
-  font-size: 1rem;
-  line-height: 1.6;
   font-weight: 400;
-}
-
-.wiki-content p {
-  line-height: 1.6;
 }
 
 html,
@@ -43,30 +33,37 @@ body {
   scroll-behavior: smooth;
 }
 
-.scroll-container {
-  height: calc(100vh - var(--header-height));
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-.scroll-container::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
 }
 
-.scroll-section {
-  scroll-snap-align: start;
-  height: calc(100vh - var(--header-height));
-  display: flex;
-  align-items: center;
-  justify-content: center;
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
 }
 
-.read-more-link {
-  font-family: "Roboto", sans-serif;
-  font-weight: 400;
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-height: var(--header-height-lg);
+  }
+}
+
+@layer utilities {
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
 
 .text-base {

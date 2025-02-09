@@ -1,8 +1,8 @@
 "use client"
 
-import Link from "next/link"
 import Image from "next/image"
-import { useEffect, useState, useRef } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
+import { ChevronUp } from "lucide-react"
 
 interface ArticleProps {
   article: {
@@ -19,90 +19,251 @@ interface ArticleProps {
 }
 
 export default function WikiArticle({ article }: ArticleProps) {
-  const [isTouchDevice, setIsTouchDevice] = useState(false)
-  const [isVertical, setIsVertical] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [previewHeight, setPreviewHeight] = useState(0)
+  const [expandedHeight, setExpandedHeight] = useState(0)
+  const [lineClamp, setLineClamp] = useState(20)
+  const [maxHeight, setMaxHeight] = useState("100vh")
   const contentRef = useRef<HTMLDivElement>(null)
+  const headerRef = useRef<HTMLDivElement>(null)
+  const expandedContentRef = useRef<HTMLDivElement>(null)
+
+  const updatePreviewHeight = useCallback(() => {
+    if (headerRef.current) {
+      const height = headerRef.current.offsetHeight
+      setPreviewHeight(height)
+    }
+  }, [])
+
+  const updateExpandedHeight = useCallback(() => {
+    if (expandedContentRef.current) {
+      const height = expandedContentRef.current.scrollHeight
+      setExpandedHeight(height)
+    }
+  }, [])
 
   useEffect(() => {
-    setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0)
-    if (article.thumbnail) {
-      setIsVertical(article.thumbnail.height > article.thumbnail.width)
-    }
-  }, [article.thumbnail])
+    updatePreviewHeight()
+    updateExpandedHeight()
 
-  const maxHeight = "calc(100vh - var(--header-height) - 3rem)"
+    window.addEventListener("resize", () => {
+      updatePreviewHeight()
+      updateExpandedHeight()
+    })
+
+    const resizeObserver = new ResizeObserver(() => {
+      updatePreviewHeight()
+      updateExpandedHeight()
+    })
+
+    if (headerRef.current) {
+      resizeObserver.observe(headerRef.current)
+    }
+    if (expandedContentRef.current) {
+      resizeObserver.observe(expandedContentRef.current)
+    }
+
+    return () => {
+      window.removeEventListener("resize", updatePreviewHeight)
+      resizeObserver.disconnect()
+    }
+  }, [updatePreviewHeight, updateExpandedHeight])
+
+  useEffect(() => {
+    const titleLength = article.title.length
+    if (titleLength > 50) {
+      setLineClamp(12)
+    } else if (titleLength > 30) {
+      setLineClamp(15)
+    } else {
+      setLineClamp(20)
+    }
+  }, [article.title])
+
+  useEffect(() => {
+    const updateMaxHeight = () => {
+      if (window.innerWidth >= 768) {
+        setMaxHeight(`calc(100vh - var(--header-height) - 3rem)`)
+      } else {
+        setMaxHeight("100vh")
+      }
+    }
+
+    updateMaxHeight()
+    window.addEventListener("resize", updateMaxHeight)
+    return () => window.removeEventListener("resize", updateMaxHeight)
+  }, [])
+
+  const toggleExpand = () => setIsExpanded(!isExpanded)
+
+  const handleContentClick = (event: React.MouseEvent) => {
+    // Prevent the click from triggering on the "See more" or "See less" buttons
+    if (!(event.target as HTMLElement).closest("button")) {
+      toggleExpand()
+    }
+  }
 
   return (
     <article
-      className={`bg-white rounded-lg shadow-md border border-gray-200 w-full max-w-screen-sm mx-auto overflow-hidden flex flex-col lg:flex-row lg:max-w-5xl ${
-        isTouchDevice ? "" : article.thumbnail ? `h-[${maxHeight}]` : `max-h-[${maxHeight}]`
-      }`}
-      style={isTouchDevice ? {} : { height: article.thumbnail ? maxHeight : "auto" }}
+      className="flex flex-col md:flex-row h-full w-full bg-white relative overflow-hidden md:items-stretch md:rounded-xl md:shadow-lg"
+      style={{ height: maxHeight }}
     >
-      {article.thumbnail && (
-        <div
-          className={`relative w-full ${
-            isTouchDevice ? "h-48" : "h-[30%] sm:h-[35%]"
-          } lg:w-1/2 lg:h-full flex items-center justify-center bg-gray-100 ${
-            isVertical ? "lg:items-start" : "lg:items-center"
-          }`}
-        >
+      <div className="w-full md:w-1/2 h-full relative md:overflow-hidden">
+        {article.thumbnail && (
           <Image
             src={article.thumbnail.source || "/placeholder.svg"}
             alt={article.title}
-            width={500}
-            height={550}
-            className={`rounded-t-lg lg:rounded-l-lg lg:rounded-tr-none w-full h-full
-              object-contain
-              ${isVertical ? "lg:object-cover" : "lg:object-contain"}`}
+            layout="fill"
+            objectFit="cover"
           />
-        </div>
-      )}
-      <div
-        className={`p-4 sm:p-6 w-full ${
-          isTouchDevice ? "" : article.thumbnail ? "lg:w-1/2 h-[70%] sm:h-[65%] lg:h-full" : "h-full"
-        } flex flex-col ${!isTouchDevice ? "overflow-y-auto" : ""}`}
-        ref={contentRef}
-      >
-        <h2 className="text-3xl sm:text-4xl mb-2 text-[#202122]">{article.title}</h2>
-        <div className="flex items-center text-sm sm:text-base text-gray-500 mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-            <path
-              fillRule="evenodd"
-              d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-          {article.views.toLocaleString()} views
-        </div>
-        <div className={`wiki-content flex-1 ${!isTouchDevice ? "overflow-y-auto" : ""} mb-4`}>
-          <p
-            className={`text-base sm:text-lg transition-all duration-300 ease-in-out ${isTouchDevice ? "line-clamp-6" : ""}`}
+        )}
+      </div>
+
+      <div className="w-full md:w-1/2 md:flex md:flex-col bg-white transition-all duration-500 ease-in-out overflow-hidden">
+        {/* Content for small screens */}
+        <div className="md:hidden">
+          <div
+            className="absolute inset-x-0 bottom-0 bg-white transition-all duration-500 ease-in-out flex flex-col overflow-hidden cursor-pointer"
+            style={{ height: isExpanded ? `${expandedHeight}px` : `${previewHeight}px` }}
+            ref={contentRef}
+            onClick={handleContentClick}
           >
-            {article.extract}
-          </p>
+            <div ref={expandedContentRef}>
+              <div className="p-4" ref={headerRef}>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 mr-4">
+                    <h2 className="text-4xl text-[#202122] break-words font-linux font-bold leading-tight mb-2">
+                      {article.title}
+                    </h2>
+                    <div className="flex items-center text-sm text-gray-500 mt-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 mr-1"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                        <path
+                          fillRule="evenodd"
+                          d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {article.views.toLocaleString()} views
+                    </div>
+                  </div>
+                  <ChevronUp
+                    size={24}
+                    className={`text-gray-500 transition-transform duration-500 ${isExpanded ? "rotate-180" : ""}`}
+                  />
+                </div>
+                <div className="relative mt-3">
+                  <div
+                    className={`text-base text-[#202122] font-roboto ${
+                      isExpanded ? "opacity-0" : "opacity-100"
+                    } transition-opacity duration-500`}
+                  >
+                    <div className="leading-relaxed line-clamp-3">{article.extract}</div>
+                    <button
+                      onClick={toggleExpand}
+                      className="block mt-2 text-[#3366cc] hover:underline text-base font-roboto font-bold"
+                    >
+                      See more
+                    </button>
+                  </div>
+                  <div
+                    className={`
+                      absolute top-0 left-0 right-0
+                      text-base text-[#202122] font-roboto leading-relaxed
+                      transition-opacity duration-500
+                      ${isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"}
+                    `}
+                  >
+                    <div className={`line-clamp-[${lineClamp}]`}>{article.extract}</div>
+                    <button
+                      onClick={toggleExpand}
+                      className="block mt-2 text-[#3366cc] hover:underline text-base font-roboto font-bold"
+                    >
+                      See less
+                    </button>
+                    <div className="mt-4 pt-4 pb-4 border-t border-gray-200">
+                      <a
+                        href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#3366cc] hover:underline inline-flex items-center text-base"
+                      >
+                        Read more on Wikipedia
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 ml-1.5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <Link
-          href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#3366cc] hover:underline inline-flex items-center read-more-link text-base sm:text-lg mt-auto"
-        >
-          Read more on Wikipedia
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 sm:h-5 sm:w-5 ml-1.5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </Link>
+
+        {/* Content for medium screens */}
+        <div className="hidden md:flex flex-col h-full">
+          <div className="flex-grow overflow-y-auto">
+            <div className="p-4">
+              <h2 className="text-4xl text-[#202122] break-words font-linux font-bold leading-tight mb-2">
+                {article.title}
+              </h2>
+              <div className="flex items-center text-sm text-gray-500 mt-1 mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {article.views.toLocaleString()} views
+              </div>
+              <div className="text-base text-[#202122] font-roboto leading-relaxed">{article.extract}</div>
+            </div>
+          </div>
+          <div className="p-4 border-t border-gray-200">
+            <a
+              href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#3366cc] hover:underline inline-flex items-center text-base"
+            >
+              Read more on Wikipedia
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 ml-1.5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
       </div>
     </article>
   )

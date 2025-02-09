@@ -28,16 +28,16 @@ export default function ScrollButtons() {
   }, [])
 
   return (
-    <div className="hidden lg:flex flex-col fixed right-8 top-[calc(50%+var(--header-height)/2)] transform -translate-y-1/2 z-20">
+    <div className="hidden xl:flex flex-col fixed right-8 top-[calc(50%+var(--header-height)/2)] transform -translate-y-1/2 z-20">
       <button
-        className="p-2 mb-4 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200"
+        className="p-2 mb-4 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200 text-gray-600"
         aria-label="Scroll to previous article"
         onClick={() => scrollToArticle("up")}
       >
         <ChevronUp size={24} />
       </button>
       <button
-        className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200"
+        className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200 text-gray-600"
         aria-label="Scroll to next article"
         onClick={() => scrollToArticle("down")}
       >
