@@ -22,8 +22,6 @@ export default function WikiArticle({ article }: ArticleProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [previewHeight, setPreviewHeight] = useState(0)
   const [expandedHeight, setExpandedHeight] = useState(0)
-  const [lineClamp, setLineClamp] = useState(15)
-  const [maxHeight, setMaxHeight] = useState("100vh")
   const [imageOrientation, setImageOrientation] = useState<"horizontal" | "vertical">("horizontal")
   const contentRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
@@ -71,35 +69,12 @@ export default function WikiArticle({ article }: ArticleProps) {
   }, [updatePreviewHeight, updateExpandedHeight])
 
   useEffect(() => {
-    const titleLength = article.title.length
-    if (titleLength > 50) {
-      setLineClamp(5)
-    } else if (titleLength > 30) {
-      setLineClamp(8)
-    } else {
-      setLineClamp(15)
-    }
-  }, [article.title])
-
-  useEffect(() => {
-    const updateMaxHeight = () => {
-      if (window.innerWidth >= 768) {
-        setMaxHeight(`calc(100vh - var(--header-height) - 3rem)`)
-      } else {
-        setMaxHeight("100vh")
-      }
-    }
-
-    updateMaxHeight()
-    window.addEventListener("resize", updateMaxHeight)
-    return () => window.removeEventListener("resize", updateMaxHeight)
-  }, [])
-
-  useEffect(() => {
     if (article.thumbnail) {
       setImageOrientation(article.thumbnail.width >= article.thumbnail.height ? "horizontal" : "vertical")
     }
   }, [article.thumbnail])
+
+  const lineClamp = article.title.length > 50 ? 7 : article.title.length > 30 ? 12 : 15
 
   const toggleExpand = () => setIsExpanded(!isExpanded)
 
@@ -111,10 +86,7 @@ export default function WikiArticle({ article }: ArticleProps) {
   }
 
   return (
-    <article
-      className="flex flex-col md:flex-row h-full w-full bg-white relative overflow-hidden md:items-stretch md:rounded-xl md:shadow-lg"
-      style={{ height: maxHeight }}
-    >
+    <article className="flex flex-col md:flex-row h-[var(--content-height)] md:h-[var(--article-height)] w-full bg-white relative overflow-hidden md:items-stretch md:rounded-xl md:shadow-lg">
       <div className="w-full md:w-1/2 h-full relative md:overflow-hidden">
         <Image
           src={article.thumbnail.source || "/placeholder.svg"}
@@ -177,7 +149,7 @@ export default function WikiArticle({ article }: ArticleProps) {
                     } transition-opacity duration-500`}
                   >
                     <div
-                      className="leading-relaxed line-clamp line-clamp-custom"
+                      className={`leading-relaxed line-clamp line-clamp-custom`}
                       style={{ "--line-clamp": 3 } as React.CSSProperties}
                     >
                       {article.extract}
@@ -198,8 +170,8 @@ export default function WikiArticle({ article }: ArticleProps) {
                     `}
                   >
                     <div
-                      className="line-clamp line-clamp-custom"
-                      style={{ "--line-clamp": lineClamp } as React.CSSProperties}
+                      className={`line-clamp line-clamp-custom`}
+                      style={{ "--line-clamp": lineClamp, WebkitLineClamp: lineClamp } as React.CSSProperties}
                     >
                       {article.extract}
                     </div>

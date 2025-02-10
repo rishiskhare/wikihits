@@ -20,29 +20,23 @@ interface PopularArticle {
   rank: number
 }
 
-interface WikiApiResponse {
+interface WikipediaApiResponse {
   query: {
     pages: {
-      [key: string]: {
-        title: string
-        extract: string
-        pageid: number
-        thumbnail: {
-          source: string
-          width: number
-          height: number
-        }
-      }
+      [pageId: string]: WikipediaPage
     }
   }
 }
 
-interface PopularApiResponse {
-  items: [
-    {
-      articles: PopularArticle[]
-    },
-  ]
+interface WikipediaPage {
+  pageid: number
+  title: string
+  extract?: string
+  thumbnail?: {
+    source: string
+    width: number
+    height: number
+  }
 }
 
 export function useWikipediaArticles() {
@@ -58,19 +52,18 @@ export function useWikipediaArticles() {
       date.setDate(date.getDate() - 2)
       const dateString = date.toISOString().split("T")[0].replace(/-/g, "/")
 
-      const popularResponse = await fetch(
+      const response = await fetch(
         `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/${dateString}`,
       )
-      const popularData: PopularApiResponse = await popularResponse.json()
+      const data = await response.json()
 
-      const filteredArticles = popularData.items[0].articles.filter(
+      const filtered = data.items[0].articles.filter(
         (article: PopularArticle) =>
           !article.article.startsWith("Special:") &&
-          article.article !== "Main_Page" &&
-          article.article !== "Wikipedia:Featured_pictures",
+          !["Main_Page", "Wikipedia:Featured_pictures"].includes(article.article),
       )
 
-      setPopularArticles(filteredArticles)
+      setPopularArticles(filtered)
     } catch (error) {
       console.error("Error fetching popular articles:", error)
     }
@@ -84,28 +77,28 @@ export function useWikipediaArticles() {
       const batchSize = 20
       const startIndex = page * batchSize
       const batch = popularArticles.slice(startIndex, startIndex + batchSize)
-      
+
       if (batch.length === 0) {
         setHasMore(false)
         return
       }
 
-      const titles = batch.map(article => article.article).join("|")
-      const contentResponse = await fetch(
+      const titles = batch.map((article) => article.article).join("|")
+      const response = await fetch(
         `https://en.wikipedia.org/w/api.php?action=query&format=json&titles=${titles}&prop=extracts|pageimages&exintro&explaintext&pithumbsize=500&origin=*`,
       )
-      const contentData: WikiApiResponse = await contentResponse.json()
+      const data = (await response.json()) as WikipediaApiResponse
 
       const newArticles = batch
-        .map(popularArticle => {
-          const page = Object.values(contentData.query.pages).find(
-            p => p.title.replace(/ /g, "_") === popularArticle.article
+        .map((popularArticle) => {
+          const page = Object.values(data.query.pages).find(
+            (p) => p.title.replace(/ /g, "_") === popularArticle.article,
           )
-          if (!page?.thumbnail) return null
-          
+          if (!page || !page.thumbnail) return null
+
           return {
             title: page.title,
-            extract: page.extract,
+            extract: page.extract || "",
             pageid: page.pageid,
             thumbnail: page.thumbnail,
             views: popularArticle.views,
@@ -113,8 +106,8 @@ export function useWikipediaArticles() {
         })
         .filter((article): article is Article => article !== null)
 
-      setArticles(prev => [...prev, ...newArticles])
-      setPage(prev => prev + 1)
+      setArticles((prev) => [...prev, ...newArticles])
+      setPage((prev) => prev + 1)
       setHasMore(startIndex + batchSize < popularArticles.length)
     } catch (error) {
       console.error("Error fetching article batch:", error)

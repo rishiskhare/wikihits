@@ -18,13 +18,13 @@ export default function WikiFeed() {
   }, [inView, isLoading, hasMore, loadMoreArticles])
 
   return (
-    <div className="w-full h-screen md:h-[calc(100vh-var(--header-height))] overflow-y-scroll snap-y snap-mandatory scroll-container">
+    <div className="w-full h-[var(--full-height)] md:h-[var(--content-height)] overflow-y-scroll snap-y snap-mandatory scroll-container">
       {articles.map((article, index) => (
         <div
           key={`${article.pageid}-${index}`}
           id={`article-${index}`}
-          className="scroll-section w-full h-screen md:h-[calc(100vh-var(--header-height))] snap-start md:p-4 flex items-center justify-center"
-          ref={index === articles.length - 1 ? ref : undefined}
+          className="scroll-section w-full h-[var(--full-height)] md:h-[var(--content-height)] snap-start md:p-4 flex items-center justify-center"
+          ref={index === articles.length - 1 && !isLoading ? ref : undefined}
         >
           <div className="w-full max-w-5xl mx-auto">
             <WikiArticle article={article} />
@@ -32,7 +32,7 @@ export default function WikiFeed() {
         </div>
       ))}
       {isLoading && (
-        <div className="w-full h-screen md:h-[calc(100vh-var(--header-height))] flex items-center justify-center">
+        <div className="w-full h-[var(--full-height)] md:h-[var(--content-height)] flex items-center justify-center">
           Loading more articles...
         </div>
       )}
