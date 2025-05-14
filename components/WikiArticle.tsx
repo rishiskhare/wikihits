@@ -139,14 +139,14 @@ export default function WikiArticle({ article }: ArticleProps) {
                   </div>
                   <ChevronUp
                     size={24}
-                    className={`text-gray-500 duration-500 ${isExpanded ? "rotate-180" : ""}`}
+                    className={`text-gray-500 transition-transform duration-500 ${isExpanded ? "rotate-180" : ""}`}
                   />
                 </div>
                 <div className="relative mt-3">
                   <div
                     className={`text-base text-[#202122] font-roboto ${
                       isExpanded ? "opacity-0" : "opacity-100"
-                    }`}
+                    } transition-opacity duration-500`}
                   >
                     <div
                       className={`leading-relaxed line-clamp line-clamp-custom`}
