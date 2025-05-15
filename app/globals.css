@@ -59,3 +59,12 @@ body {
   -webkit-line-clamp: var(--line-clamp, 3);
 }
 
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

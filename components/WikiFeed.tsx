@@ -12,6 +12,15 @@ export default function WikiFeed() {
   })
 
   useEffect(() => {
+    articles.forEach((article) => {
+      if (article.thumbnail?.source) {
+        const img = new Image()
+        img.src = article.thumbnail.source
+      }
+    })
+  }, [articles])
+
+  useEffect(() => {
     if (inView && !isLoading && hasMore) {
       loadMoreArticles()
     }
