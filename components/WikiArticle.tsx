@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import Image from "next/image"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { ChevronUp } from "lucide-react"
@@ -23,6 +25,7 @@ export default function WikiArticle({ article }: ArticleProps) {
   const [previewHeight, setPreviewHeight] = useState(0)
   const [expandedHeight, setExpandedHeight] = useState(0)
   const [imageOrientation, setImageOrientation] = useState<"horizontal" | "vertical">("horizontal")
+  const [imageLoaded, setImageLoaded] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
   const expandedContentRef = useRef<HTMLDivElement>(null)
@@ -71,6 +74,7 @@ export default function WikiArticle({ article }: ArticleProps) {
   useEffect(() => {
     if (article.thumbnail) {
       setImageOrientation(article.thumbnail.width >= article.thumbnail.height ? "horizontal" : "vertical")
+      setImageLoaded(false)
     }
   }, [article.thumbnail])
 
@@ -79,7 +83,6 @@ export default function WikiArticle({ article }: ArticleProps) {
   const toggleExpand = () => setIsExpanded(!isExpanded)
 
   const handleContentClick = (event: React.MouseEvent) => {
-    // Prevent the click from triggering on the "See more" or "See less" buttons
     if (!(event.target as HTMLElement).closest("button")) {
       toggleExpand()
     }
@@ -93,19 +96,20 @@ export default function WikiArticle({ article }: ArticleProps) {
           alt={article.title}
           layout="fill"
           objectFit="cover"
-          className="md:hidden"
+          className={`md:hidden transition-opacity duration-300 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+          onLoad={() => setImageLoaded(true)}
         />
         <Image
           src={article.thumbnail.source || "/placeholder.svg"}
           alt={article.title}
           layout="fill"
           objectFit={imageOrientation === "horizontal" ? "contain" : "cover"}
-          className="hidden md:block"
+          className={`hidden md:block transition-opacity duration-300 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+          onLoad={() => setImageLoaded(true)}
         />
       </div>
 
       <div className="w-full md:w-1/2 md:flex md:flex-col bg-white transition-all duration-500 ease-in-out overflow-hidden">
-        {/* Content for small screens */}
         <div className="md:hidden">
           <div
             className="absolute inset-x-0 bottom-0 bg-white transition-all duration-500 ease-in-out flex flex-col overflow-hidden cursor-pointer"
@@ -120,7 +124,7 @@ export default function WikiArticle({ article }: ArticleProps) {
                     <h2 className="text-4xl text-[#202122] break-words font-linux font-bold leading-tight mb-2">
                       {article.title}
                     </h2>
-                    <div className="flex items-center text-sm text-gray-500 mt-1">
+                    <div className="flex items-center text-base text-gray-500 mt-1">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5 mr-1"
@@ -144,7 +148,7 @@ export default function WikiArticle({ article }: ArticleProps) {
                 </div>
                 <div className="relative mt-3">
                   <div
-                    className={`text-base text-[#202122] font-roboto ${
+                    className={`text-lg text-[#202122] font-roboto ${
                       isExpanded ? "opacity-0" : "opacity-100"
                     } transition-opacity duration-500`}
                   >
@@ -156,7 +160,7 @@ export default function WikiArticle({ article }: ArticleProps) {
                     </div>
                     <button
                       onClick={toggleExpand}
-                      className="block mt-2 text-[#3366cc] hover:underline text-base font-roboto font-bold"
+                      className="block mt-2 text-[#3366cc] hover:underline text-lg font-roboto font-bold"
                     >
                       See more
                     </button>
@@ -164,7 +168,7 @@ export default function WikiArticle({ article }: ArticleProps) {
                   <div
                     className={`
                       absolute top-0 left-0 right-0
-                      text-base text-[#202122] font-roboto leading-relaxed
+                      text-lg text-[#202122] font-roboto leading-relaxed
                       transition-opacity duration-500
                       ${isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"}
                     `}
@@ -177,7 +181,7 @@ export default function WikiArticle({ article }: ArticleProps) {
                     </div>
                     <button
                       onClick={toggleExpand}
-                      className="block mt-2 text-[#3366cc] hover:underline text-base font-roboto font-bold"
+                      className="block mt-2 text-[#3366cc] hover:underline text-lg font-roboto font-bold"
                     >
                       See less
                     </button>
@@ -186,7 +190,7 @@ export default function WikiArticle({ article }: ArticleProps) {
                         href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[#3366cc] hover:underline inline-flex items-center text-base"
+                        className="text-[#3366cc] hover:underline inline-flex items-center text-lg"
                       >
                         Read more on Wikipedia
                         <svg
@@ -210,14 +214,13 @@ export default function WikiArticle({ article }: ArticleProps) {
           </div>
         </div>
 
-        {/* Content for medium screens */}
         <div className="hidden md:flex flex-col h-full">
           <div className="flex-grow overflow-y-auto">
             <div className="p-4">
               <h2 className="text-4xl text-[#202122] break-words font-linux font-bold leading-tight mb-2">
                 {article.title}
               </h2>
-              <div className="flex items-center text-sm text-gray-500 mt-1 mb-4">
+              <div className="flex items-center text-base text-gray-500 mt-1 mb-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5 mr-1"
@@ -233,7 +236,7 @@ export default function WikiArticle({ article }: ArticleProps) {
                 </svg>
                 {article.views.toLocaleString()} views
               </div>
-              <div className="text-base text-[#202122] font-roboto leading-relaxed">{article.extract}</div>
+              <div className="text-lg text-[#202122] font-roboto leading-relaxed">{article.extract}</div>
             </div>
           </div>
           <div className="p-4 border-t border-gray-200">
@@ -241,7 +244,7 @@ export default function WikiArticle({ article }: ArticleProps) {
               href={`https://en.wikipedia.org/wiki?curid=${article.pageid}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#3366cc] hover:underline inline-flex items-center text-base"
+              className="text-[#3366cc] hover:underline inline-flex items-center text-lg"
             >
               Read more on Wikipedia
               <svg
@@ -263,4 +266,3 @@ export default function WikiArticle({ article }: ArticleProps) {
     </article>
   )
 }
-
