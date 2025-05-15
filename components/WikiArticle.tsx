@@ -96,7 +96,7 @@ export default function WikiArticle({ article }: ArticleProps) {
           alt={article.title}
           layout="fill"
           objectFit="cover"
-          className={`md:hidden transition-opacity duration-200 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+          className={`md:hidden transition-opacity duration-300 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
           onLoad={() => setImageLoaded(true)}
         />
         <Image
@@ -104,7 +104,7 @@ export default function WikiArticle({ article }: ArticleProps) {
           alt={article.title}
           layout="fill"
           objectFit={imageOrientation === "horizontal" ? "contain" : "cover"}
-          className={`hidden md:block transition-opacity duration-200 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+          className={`hidden md:block transition-opacity duration-300 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
           onLoad={() => setImageLoaded(true)}
         />
       </div>
