@@ -78,7 +78,7 @@ export default function WikiArticle({ article }: ArticleProps) {
     }
   }, [article.thumbnail])
 
-  const lineClamp = article.title.length > 50 ? 7 : article.title.length > 30 ? 12 : 15
+  const lineClamp = article.title.length > 50 ? 7 : article.title.length > 30 ? 10 : 12
 
   const toggleExpand = () => setIsExpanded(!isExpanded)
 
